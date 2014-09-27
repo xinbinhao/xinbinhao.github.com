@@ -1,0 +1,784 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0">
+<channel>
+        <title>Jekyll Bootstrap</title>
+        <description>Jekyll Bootstrap - Name Lastname</description>
+        <link>http://username.github.io</link>
+        <link>http://username.github.io</link>
+        <lastBuildDate>2014-09-27T21:28:47+08:00</lastBuildDate>
+        <pubDate>2014-09-27T21:28:47+08:00</pubDate>
+        <ttl>1800</ttl>
+
+
+        <item>
+                <title>全局唯一ID生成算法</title>
+                <description>&lt;p&gt;在分布式系统中经常遇到需要获取唯一ID的情况，在保证唯一的前提下一定要高性能，并且要相对占用很少的空间。&lt;/p&gt;
+
+&lt;p&gt;下面主要介绍几种生成方法：&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;一、数据库方式&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;1.1、单库单表方式&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;这个是很简单的方式了，用一个库一个表存放所有数据，数据库根据+1的方式获取。&lt;/p&gt;
+
+&lt;p&gt;优点：简单&lt;/p&gt;
+
+&lt;p&gt;缺点：大并发时性能较差&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;1.2、数据库+分表设计&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;按照一定的区域把数据划分到不同的表，分布式中机器按照一定的方式到对应的表获取。&lt;/p&gt;
+
+&lt;p&gt;比如说有 256个表，每个表放得是10w的数据，(第一个表0-10w,第二个表100001 - 20w，后面类似)，分布式中机器按照一定的规则 %256 到那个表就从对应表获取一个数字。当一个表数据用完后在重新分配。&lt;/p&gt;
+
+&lt;p&gt;优点：相比1.1方式性能有了一定的提升&lt;/p&gt;
+
+&lt;p&gt;缺点：需要提前分配好数据区域，当达到一定的并发后还会遇到性能问题。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;二、语言自带方式&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;很多语言都自带了方法。比如java 中UUID方式 UUID.randomUUID().toString()&lt;/p&gt;
+
+&lt;p&gt;```javascript&lt;/p&gt;
+
+&lt;p&gt;/**
+* get Id by UUID
+* @return
+*/
+public static String createId(){
+     return UUID.randomUUID().toString();
+}&lt;/p&gt;
+
+&lt;p&gt;```&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;三、本机ip+当时时间+累加因子 方式&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;```javascript&lt;/p&gt;
+
+&lt;p&gt;public class IdGenerator {&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;private static AtomicInteger count = new AtomicInteger(1024);
+
+/**
+* get Id by localIP + timeStamp + count
+* @return
+*/
+public static String createIdByLocalIp() {
+    return getId(InetAddressUtil.getLocalIpHex(), System.currentTimeMillis(), getNextId());
+}
+
+/**
+* get Id by IP + timeStamp + count
+* @param ip input IP
+* @return
+*/
+public static String createIdByIp(String ip) {
+    if ((ip != null) &amp;amp;&amp;amp; (!(ip.isEmpty())) &amp;amp;&amp;amp; (InetAddressUtil.validate(ip))){
+        return getId(InetAddressUtil.IpToHex(ip), System.currentTimeMillis(),getNextId());
+    }
+    return createIdByLocalIp();
+} 
+
+private static String getId(String ip, long timestamp, int nextId) {
+    StringBuilder appender = new StringBuilder(25);
+    appender.append(ip).append(timestamp).append(nextId);
+    return appender.toString();
+}
+
+private static int getNextId() {
+    while (true) {
+        int current = count.get();
+        int next = (current &amp;gt; 8192) ? 1024 : current + 1;
+        if (count.compareAndSet(current, next))
+            return next;
+    }
+} }
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;```&lt;/p&gt;
+
+&lt;p&gt;详细代码请查看github项目。&lt;/p&gt;
+
+&lt;p&gt;该方式在一台机器如果启一个进程，那是可以保证唯一性的，如果一个机器启多个进程有可能会重复，因为ip是一样的，当前时间和后面的累加因子也完全是有概率重复的。由于该方式返回内容是字符串，在需要拿当前id做数据库主键存储时可能会占用空间比较大。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;四、时间+机器id+业务id+累加因子 方式&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;该方式返回long类型，可以根据不同的进程，不同的业务做处理。&lt;/p&gt;
+
+&lt;p&gt;long类型：64位ID (42(毫秒)+5(机器ID)+5(业务编码)+12(重复累加因子))&lt;/p&gt;
+
+&lt;p&gt;12位重复累加因子是为了防止多线程获取时前面52位生成id一致而做的处理。&lt;/p&gt;
+
+&lt;p&gt;下面代码类似twitter id 生成算法。&lt;/p&gt;
+
+&lt;p&gt;```javascripet&lt;/p&gt;
+
+&lt;p&gt;/**
+ * 唯一ID 生成器
+ * 64位ID (42(毫秒)+5(机器ID)+5(业务编码)+12(重复累加))
+ */
+public class IdCreater {
+	private final static long idepoch = 1288834974657L;
+	// 机器标识位数
+	private final static long workerIdBits = 5L;
+	// 业务标识位数
+	private final static long datacenterIdBits = 5L;
+	// 机器ID最大值
+	private final static long maxWorkerId = -1L ^ (-1L « workerIdBits);
+	// 业务ID最大值
+	private final static long maxDatacenterId = -1L ^ (-1L « datacenterIdBits);
+	// 毫秒内自增位
+	private final static long sequenceBits = 12L;
+	// 机器ID偏左移12位
+	private final static long workerIdShift = sequenceBits;
+	// 业务ID左移17位
+	private final static long datacenterIdShift = sequenceBits + workerIdBits;
+	// 时间毫秒左移22位
+	private final static long timestampLeftShift = sequenceBits + workerIdBits + datacenterIdBits;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;private final static long sequenceMask = -1L ^ (-1L &amp;lt;&amp;lt; sequenceBits);
+
+private static long lastTimestamp = -1L;
+
+private long sequence = 0L;
+private final long workerId;
+private final long datacenterId;
+
+public IdCreater(long workerId, long datacenterId) {
+	if (workerId &amp;gt; maxWorkerId || workerId &amp;lt; 0) {
+		throw new IllegalArgumentException(&quot;worker Id can&#39;t be greater than %d or less than 0&quot;);
+	}
+	if (datacenterId &amp;gt; maxDatacenterId || datacenterId &amp;lt; 0) {
+		throw new IllegalArgumentException(&quot;datacenter Id can&#39;t be greater than %d or less than 0&quot;);
+	}
+	this.workerId = workerId;
+	this.datacenterId = datacenterId;
+}
+
+public IdCreater(long workerId) {
+	if (workerId &amp;gt; maxWorkerId || workerId &amp;lt; 0) {
+		throw new IllegalArgumentException(&quot;worker Id can&#39;t be greater than %d or less than 0&quot;);
+	}
+	this.workerId = workerId;
+	this.datacenterId = 0;
+}
+
+public long generate(){
+	return this.nextId(false, 0);
+}
+
+public long generate(long busid){
+	return this.nextId(true, busid);
+}
+
+private synchronized long nextId(boolean isPadding, long busid) {
+	long timestamp = timeGen();
+	long paddingnum = datacenterId;
+	if(isPadding){
+		paddingnum = busid;
+	}
+	if (timestamp &amp;lt; lastTimestamp) {
+		try {
+			throw new Exception(&quot;Clock moved backwards.  Refusing to generate id for &quot;+ (lastTimestamp - timestamp) + &quot; milliseconds&quot;);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	if (lastTimestamp == timestamp) {
+		sequence = (sequence + 1) &amp;amp; sequenceMask;
+		if (sequence == 0) {
+			timestamp = tailNextMillis(lastTimestamp);
+		}
+	} else {
+		sequence = 0;
+	}
+	lastTimestamp = timestamp;
+	long nextId = ((timestamp - idepoch) &amp;lt;&amp;lt; timestampLeftShift)
+			| (paddingnum &amp;lt;&amp;lt; datacenterIdShift)
+			| (workerId &amp;lt;&amp;lt; workerIdShift) | sequence;
+
+	return nextId;
+}
+
+private long tailNextMillis(final long lastTimestamp) {
+	long timestamp = this.timeGen();
+	while (timestamp &amp;lt;= lastTimestamp) {
+		timestamp = this.timeGen();
+	}
+	return timestamp;
+}
+
+private long timeGen() {
+	return System.currentTimeMillis();
+} }
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;```&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;strong&gt;总结：&lt;/strong&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;如果在小一点的系统，并发很低的情况，采用数据库的方式已经足够了。如果对性能有要求只需要一个唯一id，java的uuid也是一种很好的方式，在一台物理机不需要根据业务和进程进行区分id时，建议采用第三种方式。第四种方式可以根据不同的进程和业务编码生成对应的long类型的id，可以在单台物理机部署很多id生成器，但机器和业务id会有位数限制（比如机器id是5位表示，那么最多的排列是5位的组合，业务编码也一样）。在分布式系统中可以创建几个Id生成服务，分别部署在不同的机器，这种既可以解决机器id和业务id长度的限制，也可以高效的生成id。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;其实在很多业务场景，生成Id的规则都可以灵活变化，针对分库分表的业务，生成的Id中可以包含库id，比如：业务编码变成库id，但要考虑将来db扩容，id生成器中位数不够的情况。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;hr /&gt;
+
+</description>
+                <link>http://username.github.io/2014/09/22/idcreater</link>
+                <guid>http://username.github.io/2014/09/22/idcreater</guid>
+                <pubDate>2014-09-22T00:00:00+08:00</pubDate>
+        </item>
+
+        <item>
+                <title>TCP系列一:宕机</title>
+                <description>&lt;p&gt;&lt;strong&gt;场景&lt;/strong&gt;：
+客户端与服务端通过tcp长连接的方式进行数据交互，当服务端机器突然宕机(掉电、拔网线等)客户端会发生什么。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;过程&lt;/strong&gt;：
+&amp;gt; 正常情况下当服务端执行kill -9/-12/-15 客户端会收到-1的数据内容，当客户端收到-1数据信息时，执行关闭socket既可以正常关闭socket。（关闭socket执行4次握手过程）&lt;/p&gt;
+
+&lt;p&gt;回到问题本身，为了复现该问题，我们找两台机器进行测试，客户端(x.x.156.57)服务端(x.x.36.14)通过tcp长连接进行数据交互，客户端先发送10条数据到服务端，然后sleep 3分钟，客户端sleep的过程中，关闭服务端(服务端机器不关进程直接执行poweroff模拟宕机情况).客户端sleep 3分钟后，在给服务端发送一条数据。&lt;/p&gt;
+
+&lt;p&gt;1、当服务端宕机，在客户端机器执行命令：netstat/ss |grep 服务端端口
+会发现当前的tcp连接还是正常状态(为什么？因为tcp长连接正常关闭需要4次握手过程，而针对服务端突然宕机情况是没有正常执行4次握手过程)&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;table&gt;
+    &lt;tbody&gt;
+      &lt;tr&gt;
+        &lt;td&gt;**ss -na&lt;/td&gt;
+        &lt;td&gt;grep x.x.36.14**&lt;/td&gt;
+      &lt;/tr&gt;
+    &lt;/tbody&gt;
+  &lt;/table&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;ESTAB      0      0       ::ffff:x.x.156.57:42218   ::ffff:x.x.36.14:16019 &lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;2、服务端关机后一直不重启，客户端过一段时间后会自动断开连接(为什么？时间是否可以控制？)&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;tcpdump&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;```javascript&lt;/p&gt;
+
+&lt;p&gt;17:31:16.236188 IP (tos 0x0, ttl 63, id 38272, offset 0, flags [DF], proto TCP (6), length 142)
+x.x.36.14.16019 &amp;gt; x.x.156.57.42215: Flags [P.], cksum 0xcf84 (correct), seq 721:811, ack 919, win 114, options [nop,nop,TS val 665838 ecr 27489167], length 90&lt;/p&gt;
+
+&lt;p&gt;17:31:16.275492 IP (tos 0x0, ttl 64, id 41102, offset 0, flags [DF], proto TCP (6), length 52)
+x.x.156.57.42215 &amp;gt; x.x.36.14.16019: Flags [.], cksum 0xf944 (correct), ack 811, win 115, options [nop,nop,TS val 27489209 ecr 665838], length 0&lt;/p&gt;
+
+&lt;p&gt;17:34:16.239767 IP (tos 0x0, ttl 64, id 41103, offset 0, flags [DF], proto TCP (6), length 154)
+x.x.156.57.42215 &amp;gt; x.x.36.14.16019: Flags [P.], cksum 0xd547 (incorrect -&amp;gt; 0x51f7), seq 919:1021, ack 811, win 115, options [nop,nop,TS val 27669172 ecr 665838], length 102&lt;/p&gt;
+
+&lt;p&gt;17:34:16.440506 IP (tos 0x0, ttl 64, id 41104, offset 0, flags [DF], proto TCP (6), length 154)
+x.x.156.57.42215 &amp;gt; x.x.36.14.16019: Flags [P.], cksum 0xd547 (incorrect -&amp;gt; 0x512d), seq 919:1021, ack 811, win 115, options [nop,nop,TS val 27669374 ecr 665838], length 102&lt;/p&gt;
+
+&lt;p&gt;17:34:16.844514 IP (tos 0x0, ttl 64, id 41105, offset 0, flags [DF], proto TCP (6), length 154)
+x.x.156.57.42215 &amp;gt; x.x.36.14.16019: Flags [P.], cksum 0xd547 (incorrect -&amp;gt; 0x4f99), seq 919:1021, ack 811, win 115, options [nop,nop,TS val 27669778 ecr 665838], length 102&lt;/p&gt;
+
+&lt;p&gt;17:34:17.652631 IP (tos 0x0, ttl 64, id 41106, offset 0, flags [DF], proto TCP (6), length 154)
+    x.x.156.57.42215 &amp;gt; x.x.36.14.16019: Flags [P.], cksum 0xd547 (incorrect -&amp;gt; 0x4c71), seq 919:1021, ack 811, win 115, options [nop,nop,TS val 27670586 ecr 665838], length 102&lt;/p&gt;
+
+&lt;p&gt;17:34:19.268528 IP (tos 0x0, ttl 64, id 41107, offset 0, flags [DF], proto TCP (6), length 154)
+    x.x.156.57.42215 &amp;gt; x.x.36.14.16019: Flags [P.], cksum 0xd547 (incorrect -&amp;gt; 0x4621), seq 919:1021, ack 811, win 115, options [nop,nop,TS val 27672202 ecr 665838], length 102&lt;/p&gt;
+
+&lt;p&gt;17:34:22.500519 IP (tos 0x0, ttl 64, id 41108, offset 0, flags [DF], proto TCP (6), length 154)
+x.x.156.57.42215 &amp;gt; x.x.36.14.16019: Flags [P.], cksum 0xd547 (incorrect -&amp;gt; 0x3981), seq 919:1021, ack 811, win 115, options [nop,nop,TS val 27675434 ecr 665838], length 102&lt;/p&gt;
+
+&lt;p&gt;```&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;第1行正常数据发送，第2行返回ack，第三行发送数据，后面5行数据重发。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;从tcp底层看当服务端宕机后，客户端看当前连接是正常的，所以客户端还会通过该连接进行数据交互(但其实是传递不到服务端的)，如果发送的数据量很大可以通过
+netstat/ss 中得send-q 参数看出(send-q会很大，这里还有个问题如果服务端没有宕，tcp连接也正常，但send-q堆积很大时会发生什么？这个通过另一文章阐述)，&lt;/p&gt;
+
+&lt;p&gt;从tcpdump看客户端发送数据后没有返回ack，客户端会重发，重发5次后断开了连接(为什么是5次？)。
+这个就要从操作系统tcp参数说起了。&lt;/p&gt;
+
+&lt;p&gt;Centos (不同的系统对应参数也不同)
+more /proc/sys/net/ipv4/tcp_retries2(默认15) &lt;/p&gt;
+
+&lt;p&gt;tcp_retries2 ：INTEGER
+默认值为15
+在丢弃激活(已建立通讯状况)的TCP连接之前﹐需要进行多少次重试。默认值为15，根据RTO的值来决定，相当于13-30分钟(RFC1122规定，必须大于100秒).(这个值根据目前的网络设置,可以适当地改小,我的网络内修改为了5)&lt;/p&gt;
+
+&lt;p&gt;所以为什么会是重发5次后客户端主动断开连接，客户端主动断开连接其实是会发一个rst的。&lt;/p&gt;
+
+&lt;p&gt;ps &lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;至于重发时间间隔可以参考下 &lt;strong&gt;tcp/ip卷 1&lt;/strong&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;hr /&gt;
+
+</description>
+                <link>http://username.github.io/2014/08/25/tcp-poweroff</link>
+                <guid>http://username.github.io/2014/08/25/tcp-poweroff</guid>
+                <pubDate>2014-08-25T00:00:00+08:00</pubDate>
+        </item>
+
+        <item>
+                <title>this is test</title>
+                <description>&lt;head&gt;
+  &lt;meta charset=&quot;utf-8&quot; /&gt;
+  &lt;title&gt;xinbinhao blog&lt;/title&gt;
+  &lt;meta name=&quot;author&quot; content=&quot;郝新斌&quot; /&gt;
+  &lt;meta name=&quot;description&quot; content=&quot;&quot; /&gt;  
+  &lt;link rel=&quot;canonical&quot; href=&quot;http://polimo.github.io&quot; /&gt;
+  &lt;link href=&quot;/favicon.png&quot; rel=&quot;icon&quot; /&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;h1&gt;this is test &lt;/h1&gt;
+&lt;h2&gt;this is test&lt;/h2&gt;
+&lt;table border=&quot;1&quot;&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;a href=&quot;http://www.baidu.com&quot;&gt;连接 link&lt;/a&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/table&gt;
+&lt;/body&gt;
+
+</description>
+                <link>http://username.github.io/2014/01/01/test</link>
+                <guid>http://username.github.io/2014/01/01/test</guid>
+                <pubDate>2014-01-01T00:00:00+08:00</pubDate>
+        </item>
+
+        <item>
+                <title>Jekyll Introduction</title>
+                <description>
+&lt;p&gt;This Jekyll introduction will outline specifically  what Jekyll is and why you would want to use it.
+Directly following the intro we’ll learn exactly &lt;em&gt;how&lt;/em&gt; Jekyll does what it does.&lt;/p&gt;
+
+&lt;h2 id=&quot;overview&quot;&gt;Overview&lt;/h2&gt;
+
+&lt;h3 id=&quot;what-is-jekyll&quot;&gt;What is Jekyll?&lt;/h3&gt;
+
+&lt;p&gt;Jekyll is a parsing engine bundled as a ruby gem used to build static websites from
+dynamic components such as templates, partials, liquid code, markdown, etc. Jekyll is known as “a simple, blog aware, static site generator”.&lt;/p&gt;
+
+&lt;h3 id=&quot;examples&quot;&gt;Examples&lt;/h3&gt;
+
+&lt;p&gt;This website is created with Jekyll. &lt;a href=&quot;https://github.com/mojombo/jekyll/wiki/Sites&quot;&gt;Other Jekyll websites&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h3 id=&quot;what-does-jekyll-do&quot;&gt;What does Jekyll Do?&lt;/h3&gt;
+
+&lt;p&gt;Jekyll is a ruby gem you install on your local system.
+Once there you can call &lt;code&gt;jekyll --server&lt;/code&gt; on a directory and provided that directory
+is setup in a way jekyll expects, it will do magic stuff like parse markdown/textile files,
+compute categories, tags, permalinks, and construct your pages from layout templates and partials.&lt;/p&gt;
+
+&lt;p&gt;Once parsed, Jekyll stores the result in a self-contained static &lt;code&gt;_site&lt;/code&gt; folder.
+The intention here is that you can serve all contents in this folder statically from a plain static web-server.&lt;/p&gt;
+
+&lt;p&gt;You can think of Jekyll as a normalish dynamic blog but rather than parsing content, templates, and tags
+on each request, Jekyll does this once &lt;em&gt;beforehand&lt;/em&gt; and caches the &lt;em&gt;entire website&lt;/em&gt; in a folder for serving statically.&lt;/p&gt;
+
+&lt;h3 id=&quot;jekyll-is-not-blogging-software&quot;&gt;Jekyll is Not Blogging Software&lt;/h3&gt;
+
+&lt;p&gt;&lt;strong&gt;Jekyll is a parsing engine.&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Jekyll does not come with any content nor does it have any templates or design elements.
+This is a common source of confusion when getting started.
+Jekyll does not come with anything you actually use or see on your website - you have to make it.&lt;/p&gt;
+
+&lt;h3 id=&quot;why-should-i-care&quot;&gt;Why Should I Care?&lt;/h3&gt;
+
+&lt;p&gt;Jekyll is very minimalistic and very efficient.
+The most important thing to realize about Jekyll is that it creates a static representation of your website requiring only a static web-server.
+Traditional dynamic blogs like Wordpress require a database and server-side code.
+Heavily trafficked dynamic blogs must employ a caching layer that ultimately performs the same job Jekyll sets out to do; serve static content.&lt;/p&gt;
+
+&lt;p&gt;Therefore if you like to keep things simple and you prefer the command-line over an admin panel UI then give Jekyll a try.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Developers like Jekyll because we can write content like we write code:&lt;/strong&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Ability to write content in markdown or textile in your favorite text-editor.&lt;/li&gt;
+  &lt;li&gt;Ability to write and preview your content via localhost.&lt;/li&gt;
+  &lt;li&gt;No internet connection required.&lt;/li&gt;
+  &lt;li&gt;Ability to publish via git.&lt;/li&gt;
+  &lt;li&gt;Ability to host your blog on a static web-server.&lt;/li&gt;
+  &lt;li&gt;Ability to host freely on GitHub Pages.&lt;/li&gt;
+  &lt;li&gt;No database required.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h1 id=&quot;how-jekyll-works&quot;&gt;How Jekyll Works&lt;/h1&gt;
+
+&lt;p&gt;The following is a complete but concise outline of exactly how Jekyll works.&lt;/p&gt;
+
+&lt;p&gt;Be aware that core concepts are introduced in rapid succession without code examples.
+This information is not intended to specifically teach you how to do anything, rather it
+is intended to give you the &lt;em&gt;full picture&lt;/em&gt; relative to what is going on in Jekyll-world.&lt;/p&gt;
+
+&lt;p&gt;Learning these core concepts should help you avoid common frustrations and ultimately
+help you better understand the code examples contained throughout Jekyll-Bootstrap.&lt;/p&gt;
+
+&lt;h2 id=&quot;initial-setup&quot;&gt;Initial Setup&lt;/h2&gt;
+
+&lt;p&gt;After &lt;a href=&quot;/index.html#start-now&quot;&gt;installing jekyll&lt;/a&gt; you’ll need to format your website directory in a way jekyll expects.
+Jekyll-bootstrap conveniently provides the base directory format.&lt;/p&gt;
+
+&lt;h3 id=&quot;the-jekyll-application-base-format&quot;&gt;The Jekyll Application Base Format&lt;/h3&gt;
+
+&lt;p&gt;Jekyll expects your website directory to be laid out like so:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;.
+|-- _config.yml
+|-- _includes
+|-- _layouts
+|   |-- default.html
+|   |-- post.html
+|-- _posts
+|   |-- 2011-10-25-open-source-is-good.markdown
+|   |-- 2011-04-26-hello-world.markdown
+|-- _site
+|-- index.html
+|-- assets
+    |-- css
+        |-- style.css
+    |-- javascripts
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;_config.yml&lt;/strong&gt;
+  Stores configuration data.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;_includes&lt;/strong&gt;
+  This folder is for partial views.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;_layouts&lt;/strong&gt;
+  This folder is for the main templates your content will be inserted into.
+  You can have different layouts for different pages or page sections.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;_posts&lt;/strong&gt;
+  This folder contains your dynamic content/posts.
+  the naming format is required to be &lt;code&gt;@YEAR-MONTH-DATE-title.MARKUP@&lt;/code&gt;.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;_site&lt;/strong&gt;
+  This is where the generated site will be placed once Jekyll is done transforming it.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;assets&lt;/strong&gt;
+  This folder is not part of the standard jekyll structure.
+  The assets folder represents &lt;em&gt;any generic&lt;/em&gt; folder you happen to create in your root directory.
+  Directories and files not properly formatted for jekyll will be left untouched for you to serve normally.&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;(read more: &lt;a href=&quot;https://github.com/mojombo/jekyll/wiki/Usage&quot;&gt;https://github.com/mojombo/jekyll/wiki/Usage&lt;/a&gt;)&lt;/p&gt;
+
+&lt;h3 id=&quot;jekyll-configuration&quot;&gt;Jekyll Configuration&lt;/h3&gt;
+
+&lt;p&gt;Jekyll supports various configuration options that are fully outlined here:
+(&lt;a href=&quot;https://github.com/mojombo/jekyll/wiki/Configuration&quot;&gt;https://github.com/mojombo/jekyll/wiki/Configuration&lt;/a&gt;)&lt;/p&gt;
+
+&lt;h2 id=&quot;content-in-jekyll&quot;&gt;Content in Jekyll&lt;/h2&gt;
+
+&lt;p&gt;Content in Jekyll is either a post or a page.
+These content “objects” get inserted into one or more templates to build the final output for its respective static-page.&lt;/p&gt;
+
+&lt;h3 id=&quot;posts-and-pages&quot;&gt;Posts and Pages&lt;/h3&gt;
+
+&lt;p&gt;Both posts and pages should be written in markdown, textile, or HTML and may also contain Liquid templating syntax.
+Both posts and pages can have meta-data assigned on a per-page basis such as title, url path, as well as arbitrary custom meta-data.&lt;/p&gt;
+
+&lt;h3 id=&quot;working-with-posts&quot;&gt;Working With Posts&lt;/h3&gt;
+
+&lt;p&gt;&lt;strong&gt;Creating a Post&lt;/strong&gt;
+Posts are created by properly formatting a file and placing it the &lt;code&gt;_posts&lt;/code&gt; folder.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Formatting&lt;/strong&gt;
+A post must have a valid filename in the form &lt;code&gt;YEAR-MONTH-DATE-title.MARKUP&lt;/code&gt; and be placed in the &lt;code&gt;_posts&lt;/code&gt; directory.
+If the data format is invalid Jekyll will not recognize the file as a post. The date and title are automatically parsed from the filename of the post file.
+Additionally, each file must have &lt;a href=&quot;https://github.com/mojombo/jekyll/wiki/YAML-Front-Matter&quot;&gt;YAML Front-Matter&lt;/a&gt; prepended to its content.
+YAML Front-Matter is a valid YAML syntax specifying meta-data for the given file.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Order&lt;/strong&gt;
+Ordering is an important part of Jekyll but it is hard to specify a custom ordering strategy.
+Only reverse chronological and chronological ordering is supported in Jekyll.&lt;/p&gt;
+
+&lt;p&gt;Since the date is hard-coded into the filename format, to change the order, you must change the dates in the filenames.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Tags&lt;/strong&gt;
+Posts can have tags associated with them as part of their meta-data.
+Tags may be placed on posts by providing them in the post’s YAML front matter.
+You have access to the post-specific tags in the templates. These tags also get added to the sitewide collection.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Categories&lt;/strong&gt;
+Posts may be categorized by providing one or more categories in the YAML front matter.
+Categories offer more significance over tags in that they can be reflected in the URL path to the given post.
+Note categories in Jekyll work in a specific way.
+If you define more than one category you are defining a category hierarchy “set”.
+Example:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;---
+title :  Hello World
+categories : [lessons, beginner]
+---
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;This defines the category hierarchy “lessons/beginner”. Note this is &lt;em&gt;one category&lt;/em&gt; node in Jekyll.
+You won’t find “lessons” and “beginner” as two separate categories unless you define them elsewhere as singular categories.&lt;/p&gt;
+
+&lt;h3 id=&quot;working-with-pages&quot;&gt;Working With Pages&lt;/h3&gt;
+
+&lt;p&gt;&lt;strong&gt;Creating a Page&lt;/strong&gt;
+Pages are created by properly formatting a file and placing it anywhere in the root directory or subdirectories that do &lt;em&gt;not&lt;/em&gt; start with an underscore.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Formatting&lt;/strong&gt;
+In order to register as a Jekyll page the file must contain &lt;a href=&quot;https://github.com/mojombo/jekyll/wiki/YAML-Front-Matter&quot;&gt;YAML Front-Matter&lt;/a&gt;.
+Registering a page means 1) that Jekyll will process the page and 2) that the page object will be available in the &lt;code&gt;site.pages&lt;/code&gt; array for inclusion into your templates.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Categories and Tags&lt;/strong&gt;
+Pages do not compute categories nor tags so defining them will have no effect.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Sub-Directories&lt;/strong&gt;
+If pages are defined in sub-directories, the path to the page will be reflected in the url.
+Example:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;.
+|-- people
+    |-- bob
+        |-- essay.html
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;This page will be available at &lt;code&gt;http://yourdomain.com/people/bob/essay.html&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Recommended Pages&lt;/strong&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;strong&gt;index.html&lt;/strong&gt;
+You will always want to define the root index.html page as this will display on your root URL.&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;404.html&lt;/strong&gt;
+Create a root 404.html page and GitHub Pages will serve it as your 404 response.&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;sitemap.html&lt;/strong&gt;
+Generating a sitemap is good practice for SEO.&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;about.html&lt;/strong&gt;
+A nice about page is easy to do and gives the human perspective to your website.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;templates-in-jekyll&quot;&gt;Templates in Jekyll&lt;/h2&gt;
+
+&lt;p&gt;Templates are used to contain a page’s or post’s content.
+All templates have access to a global site object variable: &lt;code&gt;site&lt;/code&gt; as well as a page object variable: &lt;code&gt;page&lt;/code&gt;.
+The site variable holds all accessible content and metadata relative to the site.
+The page variable holds accessible data for the given page or post being rendered at that point.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Create a Template&lt;/strong&gt;
+Templates are created by properly formatting a file and placing it in the &lt;code&gt;_layouts&lt;/code&gt; directory.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Formatting&lt;/strong&gt;
+Templates should be coded in HTML and contain YAML Front Matter.
+All templates can contain Liquid code to work with your site’s data.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Rending Page/Post Content in a Template&lt;/strong&gt;
+There is a special variable in all templates named : &lt;code&gt;content&lt;/code&gt;.
+The &lt;code&gt;content&lt;/code&gt; variable holds the page/post content including any sub-template content previously defined.
+Render the content variable wherever you want your main content to be injected into your template:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;...
+&amp;lt;body&amp;gt;
+  &amp;lt;div id=&quot;sidebar&quot;&amp;gt; ... &amp;lt;/div&amp;gt;
+  &amp;lt;div id=&quot;main&quot;&amp;gt;
+    &amp;#123;{content}&amp;#125;
+  &amp;lt;/div&amp;gt;
+&amp;lt;/body&amp;gt;
+...&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&quot;sub-templates&quot;&gt;Sub-Templates&lt;/h3&gt;
+
+&lt;p&gt;Sub-templates are exactly templates with the only difference being they
+define another “root” layout/template within their YAML Front Matter.
+This essentially means a template will render inside of another template.&lt;/p&gt;
+
+&lt;h3 id=&quot;includes&quot;&gt;Includes&lt;/h3&gt;
+&lt;p&gt;In Jekyll you can define include files by placing them in the &lt;code&gt;_includes&lt;/code&gt; folder.
+Includes are NOT templates, rather they are just code snippets that get included into templates.
+In this way, you can treat the code inside includes as if it was native to the parent template.&lt;/p&gt;
+
+&lt;p&gt;Any valid template code may be used in includes.&lt;/p&gt;
+
+&lt;h2 id=&quot;using-liquid-for-templating&quot;&gt;Using Liquid for Templating&lt;/h2&gt;
+
+&lt;p&gt;Templating is perhaps the most confusing and frustrating part of Jekyll.
+This is mainly due to the fact that Jekyll templates must use the Liquid Templating Language.&lt;/p&gt;
+
+&lt;h3 id=&quot;what-is-liquid&quot;&gt;What is Liquid?&lt;/h3&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://github.com/Shopify/liquid&quot;&gt;Liquid&lt;/a&gt; is a secure templating language developed by &lt;a href=&quot;http://shopify.com&quot;&gt;Shopify&lt;/a&gt;.
+Liquid is designed for end-users to be able to execute logic within template files
+without imposing any security risk on the hosting server.&lt;/p&gt;
+
+&lt;p&gt;Jekyll uses Liquid to generate the post content within the final page layout structure and as the primary interface for working with
+your site and post/page data.&lt;/p&gt;
+
+&lt;h3 id=&quot;why-do-we-have-to-use-liquid&quot;&gt;Why Do We Have to Use Liquid?&lt;/h3&gt;
+
+&lt;p&gt;GitHub uses Jekyll to power &lt;a href=&quot;http://pages.github.com/&quot;&gt;GitHub Pages&lt;/a&gt;.
+GitHub cannot afford to run arbitrary code on their servers so they lock developers down via Liquid.&lt;/p&gt;
+
+&lt;h3 id=&quot;liquid-is-not-programmer-friendly&quot;&gt;Liquid is Not Programmer-Friendly.&lt;/h3&gt;
+
+&lt;p&gt;The short story is liquid is not real code and its not intended to execute real code.
+The point being you can’t do jackshit in liquid that hasn’t been allowed explicitly by the implementation.
+What’s more you can only access data-structures that have been explicitly passed to the template.&lt;/p&gt;
+
+&lt;p&gt;In Jekyll’s case it is not possible to alter what is passed to Liquid without hacking the gem or running custom plugins.
+Both of which cannot be supported by GitHub Pages.&lt;/p&gt;
+
+&lt;p&gt;As a programmer - this is very frustrating.&lt;/p&gt;
+
+&lt;p&gt;But rather than look a gift horse in the mouth we are going to
+suck it up and view it as an opportunity to work around limitations and adopt client-side solutions when possible.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Aside&lt;/strong&gt;
+My personal stance is to not invest time trying to hack liquid. It’s really unnecessary
+&lt;em&gt;from a programmer’s&lt;/em&gt; perspective. That is to say if you have the ability to run custom plugins (i.e. run arbitrary ruby code)
+you are better off sticking with ruby. Toward that end I’ve built &lt;a href=&quot;http://github.com/plusjade/mustache-with-jekyll&quot;&gt;Mustache-with-Jekyll&lt;/a&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;static-assets&quot;&gt;Static Assets&lt;/h2&gt;
+
+&lt;p&gt;Static assets are any file in the root or non-underscored subfolders that are not pages.
+That is they have no valid YAML Front Matter and are thus not treated as Jekyll Pages.&lt;/p&gt;
+
+&lt;p&gt;Static assets should be used for images, css, and javascript files.&lt;/p&gt;
+
+&lt;h2 id=&quot;how-jekyll-parses-files&quot;&gt;How Jekyll Parses Files&lt;/h2&gt;
+
+&lt;p&gt;Remember Jekyll is a processing engine. There are two main types of parsing in Jekyll.&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;strong&gt;Content parsing.&lt;/strong&gt;
+  This is done with textile or markdown.&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Template parsing.&lt;/strong&gt;
+This is done with the liquid templating language.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;And thus there are two main types of file formats needed for this parsing.&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;strong&gt;Post and Page files.&lt;/strong&gt;
+All content in Jekyll is either a post or a page so valid posts and pages are parsed with markdown or textile.&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Template files.&lt;/strong&gt;
+  These files go in &lt;code&gt;_layouts&lt;/code&gt; folder and contain your blogs &lt;strong&gt;templates&lt;/strong&gt;. They should be made in HTML with the help of Liquid syntax.
+  Since include files are simply injected into templates they are essentially parsed as if they were native to the template.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;strong&gt;Arbitrary files and folders.&lt;/strong&gt;
+Files that &lt;em&gt;are not&lt;/em&gt; valid pages are treated as static content and pass through
+Jekyll untouched and reside on your blog in the exact structure and format they originally existed in.&lt;/p&gt;
+
+&lt;h3 id=&quot;formatting-files-for-parsing&quot;&gt;Formatting Files for Parsing.&lt;/h3&gt;
+
+&lt;p&gt;We’ve outlined the need for valid formatting using &lt;strong&gt;YAML Front Matter&lt;/strong&gt;.
+Templates, posts, and pages all need to provide valid YAML Front Matter even if the Matter is empty.
+This is the only way Jekyll knows you want the file processed.&lt;/p&gt;
+
+&lt;p&gt;YAML Front Matter must be prepended to the top of template/post/page files:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;---
+layout: post
+category : pages
+tags : [how-to, jekyll]
+---
+
+... contents ...
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Three hyphens on a new line start the Front-Matter block and three hyphens on a new line end the block.
+The data inside the block must be valid YAML.&lt;/p&gt;
+
+&lt;p&gt;Configuration parameters for YAML Front-Matter is outlined here:
+&lt;a href=&quot;https://github.com/mojombo/jekyll/wiki/YAML-Front-Matter&quot;&gt;A comprehensive explanation of YAML Front Matter&lt;/a&gt;&lt;/p&gt;
+
+&lt;h4 id=&quot;defining-layouts-for-posts-and-templates-parsing&quot;&gt;Defining Layouts for Posts and Templates Parsing.&lt;/h4&gt;
+
+&lt;p&gt;The &lt;code&gt;layout&lt;/code&gt; parameter in the YAML Front Matter defines the template file for which the given post or template should be injected into.
+If a template file specifies its own layout, it is effectively being used as a &lt;code&gt;sub-template.&lt;/code&gt;
+That is to say loading a post file into a template file that refers to another template file with work in the way you’d expect; as a nested sub-template.&lt;/p&gt;
+
+&lt;h2 id=&quot;how-jekyll-generates-the-final-static-files&quot;&gt;How Jekyll Generates the Final Static Files.&lt;/h2&gt;
+
+&lt;p&gt;Ultimately, Jekyll’s job is to generate a static representation of your website.
+The following is an outline of how that’s done:&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;Jekyll collects data.&lt;/strong&gt;
+  Jekyll scans the posts directory and collects all posts files as post objects. It then scans the layout assets and collects those and finally scans other directories in search of pages.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;Jekyll computes data.&lt;/strong&gt;
+  Jekyll takes these objects, computes metadata (permalinks, tags, categories, titles, dates) from them and constructs one
+  big &lt;code&gt;site&lt;/code&gt; object that holds all the posts, pages, layouts, and respective metadata.
+  At this stage your site is one big computed ruby object.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;Jekyll liquifies posts and templates.&lt;/strong&gt;
+  Next jekyll loops through each post file and converts (through markdown or textile) and &lt;strong&gt;liquifies&lt;/strong&gt; the post inside of its respective layout(s).
+  Once the post is parsed and liquified inside the the proper layout structure, the layout itself is “liquified”.
+ &lt;strong&gt;Liquification&lt;/strong&gt; is defined as follows: Jekyll initiates a Liquid template, and passes a simpler hash representation of the ruby site object as well as a simpler
+  hash representation of the ruby post object. These simplified data structures are what you have access to in the templates.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;Jekyll generates output.&lt;/strong&gt;
+ Finally the liquid templates are “rendered”, thereby processing any liquid syntax provided in the templates
+ and saving the final, static representation of the file.&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;&lt;strong&gt;Notes.&lt;/strong&gt;
+Because Jekyll computes the entire site in one fell swoop, each template is given access to
+a global &lt;code&gt;site&lt;/code&gt; hash that contains useful data. It is this data that you’ll iterate through and format
+using the Liquid tags and filters in order to render it onto a given page.&lt;/p&gt;
+
+&lt;p&gt;Remember, in Jekyll you are an end-user. Your API has only two components:&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;The manner in which you setup your directory.&lt;/li&gt;
+  &lt;li&gt;The liquid syntax and variables passed into the liquid templates.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;All the data objects available to you in the templates via Liquid are outlined in the &lt;strong&gt;API Section&lt;/strong&gt; of Jekyll-Bootstrap.
+You can also read the original documentation here: &lt;a href=&quot;https://github.com/mojombo/jekyll/wiki/Template-Data&quot;&gt;https://github.com/mojombo/jekyll/wiki/Template-Data&lt;/a&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
+
+&lt;p&gt;I hope this paints a clearer picture of what Jekyll is doing and why it works the way it does.
+As noted, our main programming constraint is the fact that our API is limited to what is accessible via Liquid and Liquid only.&lt;/p&gt;
+
+&lt;p&gt;Jekyll-bootstrap is intended to provide helper methods and strategies aimed at making it more intuitive and easier to work with Jekyll =)&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Thank you&lt;/strong&gt; for reading this far.&lt;/p&gt;
+
+&lt;h2 id=&quot;next-steps&quot;&gt;Next Steps&lt;/h2&gt;
+
+&lt;p&gt;Please take a look at []()
+or jump right into &lt;a href=&quot;&quot;&gt;Usage&lt;/a&gt; if you’d like.&lt;/p&gt;
+</description>
+                <link>http://username.github.io/lessons/2011/12/29/jekyll-introduction</link>
+                <guid>http://username.github.io/lessons/2011/12/29/jekyll-introduction</guid>
+                <pubDate>2011-12-29T00:00:00+08:00</pubDate>
+        </item>
+
+
+</channel>
+</rss>
