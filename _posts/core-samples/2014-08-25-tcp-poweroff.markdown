@@ -1,6 +1,6 @@
 ---
 title: "TCP系列一:宕机"
-layout: post
+layout: post-my
 guid: urn:uuid:866af2a0-3fc7-4ced-839d-1839115b7176
 description: "tcp 宕机"
 tags:

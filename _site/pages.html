@@ -1,41 +1,147 @@
+
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en-us">
+<html lang="en">
   <head>
-    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
-    <meta name="author" content="{"name"=>"Name Lastname", "email"=>"blah@email.test", "github"=>"username", "twitter"=>"username", "feedburner"=>"feedname"}" />
-    
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
     <title>Pages</title>
     
-    <link rel="shortcut icon" href="/favicon.ico">
-    <link href="/atom.xml" rel="alternate" title="" type="application/atom+xml" />
-    <link rel="stylesheet" href="/media/css/style.css">
-    <link rel="stylesheet" href="/media/css/github.css">
-    <link rel="stylesheet" href="/media/css/fontawesome.css">
-    <script src="/media/js/jquery-1.7.1.min.js" type="text/javascript" charset="utf-8"></script> 
-    <script type="text/javascript" src="/media/js/highlight.pack.js"></script>
-    <script type="text/javascript">
-      hljs.initHighlightingOnLoad();
-    </script>
+    <meta name="author" content="xinbinhao">
+
+    <!-- Enable responsive viewport -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Bootstrap styles -->
+    <link href="/assets/themes/bootstrap-3/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Optional theme -->
+    <link href="/assets/themes/bootstrap-3/bootstrap/css/bootstrap-theme.min.css" rel="stylesheet">
+    <!-- Sticky Footer -->
+    <link href="/assets/themes/bootstrap-3/bootstrap/css/bs-sticky-footer.css" rel="stylesheet">
+    
+    <!-- Custom styles -->
+    <link href="/assets/themes/bootstrap-3/css/style.css?body=1" rel="stylesheet" type="text/css" media="all">
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+      <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- Fav and touch icons -->
+    <!-- Update these with your own images
+      <link rel="shortcut icon" href="images/favicon.ico">
+      <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
+      <link rel="apple-touch-icon" sizes="72x72" href="images/apple-touch-icon-72x72.png">
+      <link rel="apple-touch-icon" sizes="114x114" href="images/apple-touch-icon-114x114.png">
+    -->
+
+    <!-- atom & rss feed -->
+    <link href="/atom.xml" type="application/atom+xml" rel="alternate" title="Sitewide ATOM Feed">
+    <link href="/rss.xml" type="application/rss+xml" rel="alternate" title="Sitewide RSS Feed">
+
   </head>
+
   <body>
-      <div id="main" role="main">
-        <header>
-          <div id="header">
-            <h1><a title="" class="" href="/"></a></h1>
-          </div>
-          <nav>
+    <div id="wrap">
+      <nav class="navbar navbar-default" role="navigation">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#jb-navbar-collapse">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="/">xinbinhao</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <div class="collapse navbar-collapse" id="jb-navbar-collapse">
+          <ul class="nav navbar-nav">
             
-          </nav>
-        </header>
-        <div id="content">
-        <article>
+            
+            
+
+
   
-  <section class="title">
-    <h2>Pages </h2>
-  </section>
+    
+      
+    
   
-  <section class="post">
+    
+      
+      	
+      	<li><a href="/archive.html">Archive</a></li>
+      	
+      
+    
   
+    
+      
+    
+  
+    
+      
+      	
+      	<li><a href="/categories.html">Categories</a></li>
+      	
+      
+    
+  
+    
+  
+    
+      
+    
+  
+    
+      
+      	
+      	<li class="active"><a href="/pages.html" class="active">Pages</a></li>
+      	
+      
+    
+  
+    
+      
+    
+  
+    
+      
+    
+  
+    
+      
+      	
+      	<li><a href="/tags.html">Tags</a></li>
+      	
+      
+    
+  
+
+
+
+          </ul>
+          <form class="navbar-form navbar-right" role="search">
+            <div class="form-group">
+              <input type="text" class="form-control" placeholder="Search">
+            </div>
+            <button type="submit" class="btn btn-default">Submit</button>
+          </form>
+        </div><!-- /.navbar-collapse -->
+      </nav>
+
+      <div class="container">
+        
+<div class="page-header">
+  <h1>Pages </h1>
+</div>
+
+<div class="row">
+  <div class="col-xs-12">
+    
 
 <h2>All Pages</h2>
 <ul>
@@ -43,14 +149,6 @@
 
 
 
-  
-    
-      
-      	
-      	<li><a href="/404.html">404</a></li>
-      	
-      
-    
   
     
       
@@ -71,11 +169,9 @@
     
       
       	
-      	<li><a href="/archive.html">archive</a></li>
+      	<li><a href="/atom.xml">Atom Feed</a></li>
       	
       
-    
-  
     
   
     
@@ -86,22 +182,6 @@
       
     
   
-    
-      
-      	
-      	<li><a href="/adhoc/index.html">AdHoc</a></li>
-      	
-      
-    
-  
-    
-  
-    
-      
-      	
-      	<li><a href="/index.html">Hello World!</a></li>
-      	
-      
     
   
     
@@ -144,29 +224,35 @@
       
     
   
-    
-      
-      	
-      	<li><a href="/tags.html">tags</a></li>
-      	
-      
-    
-  
 
 
 
 </ul>
 
-  </section>
-</article>
+  </div>
+</div>
 
-        </div>
-        <footer>
-          <div>
-            
-            &copy; 2011 ~ 2014  | Content by <a href="/about.html">Polimo</a>. Design by <a href="https://github.com/waynezhang">waynezhang</a> | powered by jekyll | fork <a href="https://github.com/xinbinhao" title="fork me">me</a>
-          </div>
-        </footer>
-      </div> <!-- main -->
+
+      </div>
+
+    </div>
+
+    <div id="footer">
+      <div class="container">
+        <p>&copy; 2014 xinbinhao
+          with help from <a href="http://jekyllbootstrap.com" target="_blank" title="The Definitive Jekyll Blogging Framework">Jekyll Bootstrap</a>
+          and <a href="http://twitter.github.com/bootstrap/" target="_blank">Twitter Bootstrap</a>
+        </p>
+      </div>
+    </div id="footer">
+
+    
+
+
+    <!-- Latest compiled and minified JavaScript, requires jQuery 1.x (2.x not supported in IE8) -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+    <script src="/assets/themes/bootstrap-3/bootstrap/js/bootstrap.min.js"></script>
   </body>
 </html>
+

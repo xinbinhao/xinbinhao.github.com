@@ -1,46 +1,64 @@
 ---
-layout: page
-title: Hello World!
+layout: default-my
 tagline: Supporting tagline
 ---
 {% include JB/setup %}
 
-Read [Jekyll Quick Start](http://jekyllbootstrap.com/usage/jekyll-quick-start.html)
-
-Complete usage and documentation available at: [Jekyll Bootstrap](http://jekyllbootstrap.com)
-
-## Update Author Attributes
-
-In `_config.yml` remember to specify your own data:
-    
-    title : My Blog =)
-    
-    author :
-      name : Name Lastname
-      email : blah@email.test
-      github : username
-      twitter : username
-
-The theme should reference these variables whenever needed.
-    
-## Sample Posts
-
-This blog contains sample posts which help stage pages and blog data.
-When you don't need the samples anymore just delete the `_posts/core-samples` folder.
-
-    $ rm -rf _posts/core-samples
-
-Here's a sample "posts list".
-
-<ul class="posts">
-  {% for post in site.posts %}
-    <li><span>{{ post.date | date_to_string }}</span> &raquo; <a href="{{ BASE_PATH }}{{ post.url }}">{{ post.title }}</a></li>
+<div>
+  <ul class="listing">
+  {% for post in site.posts limit: 1 %}
+  <article class="content">
+    <section class="title">
+      <h2><a href="{{ post.url }}">{{ post.title }}</a></h2>
+    </section>
+    <section class="meta">
+    <span class="time">
+      <time datetime="{{ post.date | date:"%Y-%m-%d" }}">{{ post.date | date:"%Y-%m-%d" }}</time>
+    </span>
+    {% if post.tags %}
+    <span class="tags">
+      {% for tag in post.tags %}
+      <a href="/tags.html#{{ tag }}" title="{{ tag }}">#{{ tag }}</a>
+      {% endfor %}
+    </span>
+    {% endif %}
+    <!-- BEGIN this would not work on any other domain -->
+    <span
+      class           = 'like-wrapper'
+      like-shortname  = '{{ site.JB.comments.disqus.short_name }}'
+      like-identifier = '{{ post.guid }}'
+      like-name       = '{{ post.title }}'
+      like-link       = '{{ site.atom-baseurl }}{{ page.url }}'
+      like-btn        = '&#xf087;'
+    ></span>
+    <script type="text/javascript">
+      var l = document.createElement('script'); l.type = 'text/javascript'; l.async = true;
+      l.src = 'http://www.like-btn.com/javascript/widget.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(l);
+    </script>
+    <!-- END this would not work on any other domain -->
+    </section>
+    <section class="post">
+    {{ post.content }}
+    </section>
+    </article>
   {% endfor %}
-</ul>
-
-## To-Do
-
-This theme is still unfinished. If you'd like to be added as a contributor, [please fork](http://github.com/plusjade/jekyll-bootstrap)!
-We need to clean up the themes, make theme usage guides with theme-specific markup examples.
-
+  </ul>
+  <div class="divider"></div>
+  <ul class="listing main-listing">
+  <li class="listing-seperator">Happend earlier this year</i>
+  {% capture year %}{{ site.time | date:"%Y"}}{% endcapture %}
+  {% for post in site.posts offset:1 %}
+    {% capture y %}{{ post.date | date:"%Y"}}{% endcapture %}
+    {% if year != y %}
+    {% break %}
+    {% endif %}
+    <li class="listing-item">
+      <time datetime="{{ post.date | date:"%Y-%m-%d" }}">{{ post.date | date:"%Y-%m-%d" }}</time>
+      <a href="{{ post.url }}" title="{{ post.title }}">{{ post.title }}</a>
+    </li>
+  {% endfor %}
+    <li class="listing-seperator"><a href="/archive.html"> Long ago</a></li>
+  </ul>
+</div>
 

@@ -1,11 +1,13 @@
+
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en-us">
   <head>
     <meta http-equiv="content-type" content="text/html; charset=utf-8" />
-    <meta name="author" content="{"name"=>"Name Lastname", "email"=>"blah@email.test", "github"=>"username", "twitter"=>"username", "feedburner"=>"feedname"}" />
     
     <title>全局唯一ID生成算法</title>
     
+    
+    <meta name="author" content="xinbinhao"/>
     <link rel="shortcut icon" href="/favicon.ico">
     <link href="/atom.xml" rel="alternate" title="" type="application/atom+xml" />
     <link rel="stylesheet" href="/media/css/style.css">
@@ -21,9 +23,19 @@
       <div id="main" role="main">
         <header>
           <div id="header">
-            <h1><a title="" class="" href="/"></a></h1>
+            <h1><a title="xinbinhao" class="" href="/">xinbinhao</a></h1>
           </div>
           <nav>
+            
+            <span><a title="home" href="/"><i class="fa fa-home"></i></a></span>
+            
+            <span><a title="Archive" href="/archive.html"><i class="fa fa-list-ul"></i></a></span>
+            
+            <span><a title="Tags" href="/tags.html"><i class="fa fa-tags"></i></a></span>
+            
+            <span><a title="About" href="/about.html"><i class="fa fa-user"></i></a></span>
+            
+            <span><a title="Blogroll" href="/links.html"><i class="fa fa-link"></i></a></span>
             
           </nav>
         </header>
@@ -287,7 +299,7 @@ private long timeGen() {
   <div class="divider">
     <span>
     
-    <a href="/2014/08/25/tcp-poweroff"><i class="fa fa-chevron-left"></i></a>
+    <a href="/2014/08/25/tcp-poweroff" title="TCP系列一:宕机"><i class="fa fa-chevron-left"></i></a>
     
     </span>
     <!-- BEGIN comment icon
@@ -301,34 +313,27 @@ private long timeGen() {
     
     </span>
   </div>
-
-  <!-- BEGIN comment
+  
+  <!-- comment start-->
   <section class="comment">
   <div id="disqus_thread"></div>
   <script type="text/javascript">
-      var disqus_shortname = '';
-      var disqus_identifier = 'urn:uuid:866af2a0-3fc7-4ced-839d-1839115b7176';
-
-      function leave_comment() {
+      var disqus_developer = 1;
+      var disqus_shortname = 'xinbinhao'; // required: replace example with your forum shortname
+      
+      /* * * DON'T EDIT BELOW THIS LINE * * */
+      (function() {
           var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
           dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
           (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
-          $("#leave_comment_link").css("display", "none");
-          $("#collapse_comment_link").css("display", "");
-      };
-      function collapse_comment() {
-          // document.getElementById("disqus_thread").innerHTML = '';
-          $("#disqus_thread").slideUp(400, function() {
-              $("#disqus_thread").empty();
-              $("#leave_comment_link").css("display", "");
-              $("#collapse_comment_link").css("display", "none");
-              $("#disqus_thread").css("display", "");
-          });
-      };
+      })();
   </script>
   <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  <a href="http://disqus.com" class="dsq-brlink">blog comments powered by <span class="logo-disqus">Disqus</span></a>
   </section>
-  END comment -->
+  
+  <!-- comment end-->
+
   
 </article>
 
@@ -336,9 +341,10 @@ private long timeGen() {
         <footer>
           <div>
             
-            &copy; 2011 ~ 2014  | Content by <a href="/about.html">Polimo</a>. Design by <a href="https://github.com/waynezhang">waynezhang</a> | powered by jekyll | fork <a href="https://github.com/xinbinhao" title="fork me">me</a>
+            &copy; 2014 ~ 2014  | Content by <a href="/about.html">Polimo</a>. Design by <a href="https://github.com/waynezhang">waynezhang</a> | powered by jekyll | fork <a href="https://github.com/polimo" title="fork me">me</a>
           </div>
         </footer>
       </div> <!-- main -->
   </body>
 </html>
+

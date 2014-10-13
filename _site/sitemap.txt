@@ -1,21 +1,14 @@
 
-http://username.github.io/404.html
-http://username.github.io/about.html
-http://username.github.io/archive.html
-http://username.github.io/archive.html
-http://username.github.io/atom.xml
-http://username.github.io/categories.html
-http://username.github.io/adhoc/index.html
-http://username.github.io/index.html
-http://username.github.io/index.html
-http://username.github.io/links.html
-http://username.github.io/pages.html
-http://username.github.io/rss.xml
-http://username.github.io/sitemap.txt
-http://username.github.io/tags.html
-http://username.github.io/tags.html
+http://xinbinhao.github.io/about.html
+http://xinbinhao.github.io/archive.html
+http://xinbinhao.github.io/atom.xml
+http://xinbinhao.github.io/categories.html
+http://xinbinhao.github.io/index.html
+http://xinbinhao.github.io/links.html
+http://xinbinhao.github.io/pages.html
+http://xinbinhao.github.io/rss.xml
+http://xinbinhao.github.io/sitemap.txt
+http://xinbinhao.github.io/tags.html
 
-http://username.github.io/2014/09/22/idcreater
-http://username.github.io/2014/08/25/tcp-poweroff
-http://username.github.io/2014/01/01/test
-http://username.github.io/lessons/2011/12/29/jekyll-introduction
+http://xinbinhao.github.io/2014/09/22/idcreater
+http://xinbinhao.github.io/2014/08/25/tcp-poweroff
