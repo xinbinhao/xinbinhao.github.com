@@ -5,8 +5,8 @@
         <description>xinbinhao - xinbinhao</description>
         <link>http://xinbinhao.github.io</link>
         <link>http://xinbinhao.github.io</link>
-        <lastBuildDate>2014-10-14T13:58:54+08:00</lastBuildDate>
-        <pubDate>2014-10-14T13:58:54+08:00</pubDate>
+        <lastBuildDate>2014-10-14T14:32:31+08:00</lastBuildDate>
+        <pubDate>2014-10-14T14:32:31+08:00</pubDate>
         <ttl>1800</ttl>
 
 
@@ -105,8 +105,8 @@
   &lt;table&gt;
     &lt;tbody&gt;
       &lt;tr&gt;
-        &lt;td&gt;**ss -na&lt;/td&gt;
-        &lt;td&gt;grep x.x.36.14**&lt;/td&gt;
+        &lt;td&gt;ss -na&lt;/td&gt;
+        &lt;td&gt;grep x.x.36.14&lt;/td&gt;
       &lt;/tr&gt;
     &lt;/tbody&gt;
   &lt;/table&gt;

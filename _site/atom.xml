@@ -4,7 +4,7 @@
  <title>xinbinhao</title>
  <link href="http://xinbinhao.github.io/" rel="self"/>
  <link href="http://xinbinhao.github.io"/>
- <updated>2014-10-14T13:58:54+08:00</updated>
+ <updated>2014-10-14T14:32:31+08:00</updated>
  <id>http://xinbinhao.github.io</id>
  <author>
    <name>xinbinhao</name>
@@ -110,8 +110,8 @@
   &lt;table&gt;
     &lt;tbody&gt;
       &lt;tr&gt;
-        &lt;td&gt;**ss -na&lt;/td&gt;
-        &lt;td&gt;grep x.x.36.14**&lt;/td&gt;
+        &lt;td&gt;ss -na&lt;/td&gt;
+        &lt;td&gt;grep x.x.36.14&lt;/td&gt;
       &lt;/tr&gt;
     &lt;/tbody&gt;
   &lt;/table&gt;
