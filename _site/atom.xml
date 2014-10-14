@@ -4,7 +4,7 @@
  <title>xinbinhao</title>
  <link href="http://xinbinhao.github.io/" rel="self"/>
  <link href="http://xinbinhao.github.io"/>
- <updated>2014-10-13T18:35:25+08:00</updated>
+ <updated>2014-10-14T13:38:31+08:00</updated>
  <id>http://xinbinhao.github.io</id>
  <author>
    <name>xinbinhao</name>
@@ -45,63 +45,17 @@
 
 &lt;p&gt;很多语言都自带了方法。比如java 中UUID方式 UUID.randomUUID().toString()&lt;/p&gt;
 
-&lt;p&gt;```javascript&lt;/p&gt;
-
-&lt;p&gt;/**
-* get Id by UUID
-* @return
-*/
-public static String createId(){
-     return UUID.randomUUID().toString();
-}&lt;/p&gt;
-
-&lt;p&gt;```&lt;/p&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot; data-lang=&quot;java&quot;&gt;&lt;span class=&quot;cm&quot;&gt;/**&lt;/span&gt;
+&lt;span class=&quot;cm&quot;&gt;* get Id by UUID&lt;/span&gt;
+&lt;span class=&quot;cm&quot;&gt;* @return&lt;/span&gt;
+&lt;span class=&quot;cm&quot;&gt;*/&lt;/span&gt;
+&lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;static&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;String&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;createId&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(){&lt;/span&gt;
+     &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;UUID&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;randomUUID&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;().&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;toString&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;();&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 
 &lt;p&gt;&lt;strong&gt;三、本机ip+当时时间+累加因子 方式&lt;/strong&gt;&lt;/p&gt;
 
-&lt;p&gt;```javascript&lt;/p&gt;
-
-&lt;p&gt;public class IdGenerator {&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;private static AtomicInteger count = new AtomicInteger(1024);
-
-/**
-* get Id by localIP + timeStamp + count
-* @return
-*/
-public static String createIdByLocalIp() {
-    return getId(InetAddressUtil.getLocalIpHex(), System.currentTimeMillis(), getNextId());
-}
-
-/**
-* get Id by IP + timeStamp + count
-* @param ip input IP
-* @return
-*/
-public static String createIdByIp(String ip) {
-    if ((ip != null) &amp;amp;&amp;amp; (!(ip.isEmpty())) &amp;amp;&amp;amp; (InetAddressUtil.validate(ip))){
-        return getId(InetAddressUtil.IpToHex(ip), System.currentTimeMillis(),getNextId());
-    }
-    return createIdByLocalIp();
-} 
-
-private static String getId(String ip, long timestamp, int nextId) {
-    StringBuilder appender = new StringBuilder(25);
-    appender.append(ip).append(timestamp).append(nextId);
-    return appender.toString();
-}
-
-private static int getNextId() {
-    while (true) {
-        int current = count.get();
-        int next = (current &amp;gt; 8192) ? 1024 : current + 1;
-        if (count.compareAndSet(current, next))
-            return next;
-    }
-} }
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;```&lt;/p&gt;
+&lt;script src=&quot;https://gist.github.com/568ea62a9618443dea97.js&quot;&gt;&lt;/script&gt;
 
 &lt;p&gt;详细代码请查看github项目。&lt;/p&gt;
 
@@ -117,110 +71,7 @@ private static int getNextId() {
 
 &lt;p&gt;下面代码类似twitter id 生成算法。&lt;/p&gt;
 
-&lt;p&gt;```javascripet&lt;/p&gt;
-
-&lt;p&gt;/**
- * 唯一ID 生成器
- * 64位ID (42(毫秒)+5(机器ID)+5(业务编码)+12(重复累加))
- */
-public class IdCreater {
-	private final static long idepoch = 1288834974657L;
-	// 机器标识位数
-	private final static long workerIdBits = 5L;
-	// 业务标识位数
-	private final static long datacenterIdBits = 5L;
-	// 机器ID最大值
-	private final static long maxWorkerId = -1L ^ (-1L « workerIdBits);
-	// 业务ID最大值
-	private final static long maxDatacenterId = -1L ^ (-1L « datacenterIdBits);
-	// 毫秒内自增位
-	private final static long sequenceBits = 12L;
-	// 机器ID偏左移12位
-	private final static long workerIdShift = sequenceBits;
-	// 业务ID左移17位
-	private final static long datacenterIdShift = sequenceBits + workerIdBits;
-	// 时间毫秒左移22位
-	private final static long timestampLeftShift = sequenceBits + workerIdBits + datacenterIdBits;&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;private final static long sequenceMask = -1L ^ (-1L &amp;lt;&amp;lt; sequenceBits);
-
-private static long lastTimestamp = -1L;
-
-private long sequence = 0L;
-private final long workerId;
-private final long datacenterId;
-
-public IdCreater(long workerId, long datacenterId) {
-	if (workerId &amp;gt; maxWorkerId || workerId &amp;lt; 0) {
-		throw new IllegalArgumentException(&quot;worker Id can&#39;t be greater than %d or less than 0&quot;);
-	}
-	if (datacenterId &amp;gt; maxDatacenterId || datacenterId &amp;lt; 0) {
-		throw new IllegalArgumentException(&quot;datacenter Id can&#39;t be greater than %d or less than 0&quot;);
-	}
-	this.workerId = workerId;
-	this.datacenterId = datacenterId;
-}
-
-public IdCreater(long workerId) {
-	if (workerId &amp;gt; maxWorkerId || workerId &amp;lt; 0) {
-		throw new IllegalArgumentException(&quot;worker Id can&#39;t be greater than %d or less than 0&quot;);
-	}
-	this.workerId = workerId;
-	this.datacenterId = 0;
-}
-
-public long generate(){
-	return this.nextId(false, 0);
-}
-
-public long generate(long busid){
-	return this.nextId(true, busid);
-}
-
-private synchronized long nextId(boolean isPadding, long busid) {
-	long timestamp = timeGen();
-	long paddingnum = datacenterId;
-	if(isPadding){
-		paddingnum = busid;
-	}
-	if (timestamp &amp;lt; lastTimestamp) {
-		try {
-			throw new Exception(&quot;Clock moved backwards.  Refusing to generate id for &quot;+ (lastTimestamp - timestamp) + &quot; milliseconds&quot;);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-
-	if (lastTimestamp == timestamp) {
-		sequence = (sequence + 1) &amp;amp; sequenceMask;
-		if (sequence == 0) {
-			timestamp = tailNextMillis(lastTimestamp);
-		}
-	} else {
-		sequence = 0;
-	}
-	lastTimestamp = timestamp;
-	long nextId = ((timestamp - idepoch) &amp;lt;&amp;lt; timestampLeftShift)
-			| (paddingnum &amp;lt;&amp;lt; datacenterIdShift)
-			| (workerId &amp;lt;&amp;lt; workerIdShift) | sequence;
-
-	return nextId;
-}
-
-private long tailNextMillis(final long lastTimestamp) {
-	long timestamp = this.timeGen();
-	while (timestamp &amp;lt;= lastTimestamp) {
-		timestamp = this.timeGen();
-	}
-	return timestamp;
-}
-
-private long timeGen() {
-	return System.currentTimeMillis();
-} }
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;```&lt;/p&gt;
+&lt;script src=&quot;https://gist.github.com/3d6015ea14f96d13d7ea.js&quot;&gt;&lt;/script&gt;
 
 &lt;blockquote&gt;
   &lt;p&gt;&lt;strong&gt;总结：&lt;/strong&gt;&lt;/p&gt;
@@ -274,33 +125,29 @@ private long timeGen() {
 
 &lt;p&gt;&lt;strong&gt;tcpdump&lt;/strong&gt;&lt;/p&gt;
 
-&lt;p&gt;```javascript&lt;/p&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot; data-lang=&quot;java&quot;&gt;&lt;span class=&quot;mi&quot;&gt;17&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;31&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;16.236188&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;IP&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tos&lt;/span&gt; &lt;span class=&quot;mh&quot;&gt;0x0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ttl&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;63&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;id&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;38272&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;offset&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;flags&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;DF&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;],&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;proto&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;TCP&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;6&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;length&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;142&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;36.14&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;16019&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;156.57&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;42215&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Flags&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;P&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.],&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;cksum&lt;/span&gt; &lt;span class=&quot;mh&quot;&gt;0xcf84&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;correct&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;seq&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;721&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;811&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ack&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;919&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;win&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;114&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;options&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;nop&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;nop&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;TS&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;665838&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ecr&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;27489167&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;],&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;length&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;90&lt;/span&gt;
 
-&lt;p&gt;17:31:16.236188 IP (tos 0x0, ttl 63, id 38272, offset 0, flags [DF], proto TCP (6), length 142)
-x.x.36.14.16019 &amp;gt; x.x.156.57.42215: Flags [P.], cksum 0xcf84 (correct), seq 721:811, ack 919, win 114, options [nop,nop,TS val 665838 ecr 27489167], length 90&lt;/p&gt;
+&lt;span class=&quot;mi&quot;&gt;17&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;31&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;16.275492&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;IP&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tos&lt;/span&gt; &lt;span class=&quot;mh&quot;&gt;0x0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ttl&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;64&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;id&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;41102&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;offset&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;flags&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;DF&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;],&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;proto&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;TCP&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;6&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;length&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;52&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;156.57&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;42215&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;36.14&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;16019&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Flags&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;[.],&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;cksum&lt;/span&gt; &lt;span class=&quot;mh&quot;&gt;0xf944&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;correct&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ack&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;811&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;win&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;115&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;options&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;nop&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;nop&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;TS&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;27489209&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ecr&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;665838&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;],&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;length&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;
 
-&lt;p&gt;17:31:16.275492 IP (tos 0x0, ttl 64, id 41102, offset 0, flags [DF], proto TCP (6), length 52)
-x.x.156.57.42215 &amp;gt; x.x.36.14.16019: Flags [.], cksum 0xf944 (correct), ack 811, win 115, options [nop,nop,TS val 27489209 ecr 665838], length 0&lt;/p&gt;
+&lt;span class=&quot;mi&quot;&gt;17&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;34&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;16.239767&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;IP&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tos&lt;/span&gt; &lt;span class=&quot;mh&quot;&gt;0x0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ttl&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;64&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;id&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;41103&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;offset&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;flags&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;DF&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;],&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;proto&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;TCP&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;6&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;length&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;154&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;156.57&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;42215&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;36.14&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;16019&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Flags&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;P&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.],&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;cksum&lt;/span&gt; &lt;span class=&quot;mh&quot;&gt;0xd547&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;incorrect&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;mh&quot;&gt;0x51f7&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;seq&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;919&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1021&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ack&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;811&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;win&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;115&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;options&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;nop&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;nop&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;TS&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;27669172&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ecr&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;665838&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;],&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;length&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;102&lt;/span&gt;
 
-&lt;p&gt;17:34:16.239767 IP (tos 0x0, ttl 64, id 41103, offset 0, flags [DF], proto TCP (6), length 154)
-x.x.156.57.42215 &amp;gt; x.x.36.14.16019: Flags [P.], cksum 0xd547 (incorrect -&amp;gt; 0x51f7), seq 919:1021, ack 811, win 115, options [nop,nop,TS val 27669172 ecr 665838], length 102&lt;/p&gt;
+&lt;span class=&quot;mi&quot;&gt;17&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;34&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;16.440506&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;IP&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tos&lt;/span&gt; &lt;span class=&quot;mh&quot;&gt;0x0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ttl&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;64&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;id&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;41104&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;offset&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;flags&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;DF&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;],&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;proto&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;TCP&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;6&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;length&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;154&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;156.57&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;42215&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;36.14&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;16019&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Flags&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;P&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.],&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;cksum&lt;/span&gt; &lt;span class=&quot;mh&quot;&gt;0xd547&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;incorrect&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;mh&quot;&gt;0x512d&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;seq&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;919&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1021&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ack&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;811&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;win&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;115&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;options&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;nop&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;nop&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;TS&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;27669374&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ecr&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;665838&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;],&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;length&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;102&lt;/span&gt;
 
-&lt;p&gt;17:34:16.440506 IP (tos 0x0, ttl 64, id 41104, offset 0, flags [DF], proto TCP (6), length 154)
-x.x.156.57.42215 &amp;gt; x.x.36.14.16019: Flags [P.], cksum 0xd547 (incorrect -&amp;gt; 0x512d), seq 919:1021, ack 811, win 115, options [nop,nop,TS val 27669374 ecr 665838], length 102&lt;/p&gt;
+&lt;span class=&quot;mi&quot;&gt;17&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;34&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;16.844514&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;IP&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tos&lt;/span&gt; &lt;span class=&quot;mh&quot;&gt;0x0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ttl&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;64&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;id&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;41105&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;offset&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;flags&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;DF&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;],&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;proto&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;TCP&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;6&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;length&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;154&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;156.57&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;42215&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;36.14&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;16019&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Flags&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;P&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.],&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;cksum&lt;/span&gt; &lt;span class=&quot;mh&quot;&gt;0xd547&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;incorrect&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;mh&quot;&gt;0x4f99&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;seq&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;919&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1021&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ack&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;811&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;win&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;115&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;options&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;nop&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;nop&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;TS&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;27669778&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ecr&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;665838&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;],&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;length&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;102&lt;/span&gt;
 
-&lt;p&gt;17:34:16.844514 IP (tos 0x0, ttl 64, id 41105, offset 0, flags [DF], proto TCP (6), length 154)
-x.x.156.57.42215 &amp;gt; x.x.36.14.16019: Flags [P.], cksum 0xd547 (incorrect -&amp;gt; 0x4f99), seq 919:1021, ack 811, win 115, options [nop,nop,TS val 27669778 ecr 665838], length 102&lt;/p&gt;
+&lt;span class=&quot;mi&quot;&gt;17&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;34&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;17.652631&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;IP&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tos&lt;/span&gt; &lt;span class=&quot;mh&quot;&gt;0x0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ttl&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;64&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;id&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;41106&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;offset&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;flags&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;DF&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;],&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;proto&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;TCP&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;6&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;length&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;154&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;156.57&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;42215&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;36.14&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;16019&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Flags&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;P&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.],&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;cksum&lt;/span&gt; &lt;span class=&quot;mh&quot;&gt;0xd547&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;incorrect&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;mh&quot;&gt;0x4c71&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;seq&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;919&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1021&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ack&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;811&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;win&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;115&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;options&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;nop&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;nop&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;TS&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;27670586&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ecr&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;665838&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;],&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;length&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;102&lt;/span&gt;
 
-&lt;p&gt;17:34:17.652631 IP (tos 0x0, ttl 64, id 41106, offset 0, flags [DF], proto TCP (6), length 154)
-    x.x.156.57.42215 &amp;gt; x.x.36.14.16019: Flags [P.], cksum 0xd547 (incorrect -&amp;gt; 0x4c71), seq 919:1021, ack 811, win 115, options [nop,nop,TS val 27670586 ecr 665838], length 102&lt;/p&gt;
+&lt;span class=&quot;mi&quot;&gt;17&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;34&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;19.268528&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;IP&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tos&lt;/span&gt; &lt;span class=&quot;mh&quot;&gt;0x0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ttl&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;64&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;id&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;41107&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;offset&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;flags&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;DF&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;],&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;proto&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;TCP&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;6&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;length&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;154&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;156.57&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;42215&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;36.14&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;16019&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Flags&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;P&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.],&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;cksum&lt;/span&gt; &lt;span class=&quot;mh&quot;&gt;0xd547&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;incorrect&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;mh&quot;&gt;0x4621&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;seq&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;919&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1021&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ack&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;811&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;win&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;115&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;options&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;nop&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;nop&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;TS&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;27672202&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ecr&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;665838&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;],&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;length&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;102&lt;/span&gt;
 
-&lt;p&gt;17:34:19.268528 IP (tos 0x0, ttl 64, id 41107, offset 0, flags [DF], proto TCP (6), length 154)
-    x.x.156.57.42215 &amp;gt; x.x.36.14.16019: Flags [P.], cksum 0xd547 (incorrect -&amp;gt; 0x4621), seq 919:1021, ack 811, win 115, options [nop,nop,TS val 27672202 ecr 665838], length 102&lt;/p&gt;
-
-&lt;p&gt;17:34:22.500519 IP (tos 0x0, ttl 64, id 41108, offset 0, flags [DF], proto TCP (6), length 154)
-x.x.156.57.42215 &amp;gt; x.x.36.14.16019: Flags [P.], cksum 0xd547 (incorrect -&amp;gt; 0x3981), seq 919:1021, ack 811, win 115, options [nop,nop,TS val 27675434 ecr 665838], length 102&lt;/p&gt;
-
-&lt;p&gt;```&lt;/p&gt;
+&lt;span class=&quot;mi&quot;&gt;17&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;34&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;22.500519&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;IP&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tos&lt;/span&gt; &lt;span class=&quot;mh&quot;&gt;0x0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ttl&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;64&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;id&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;41108&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;offset&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;flags&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;DF&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;],&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;proto&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;TCP&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;6&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;length&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;154&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;156.57&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;42215&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;36.14&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;16019&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Flags&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;P&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.],&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;cksum&lt;/span&gt; &lt;span class=&quot;mh&quot;&gt;0xd547&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;incorrect&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;mh&quot;&gt;0x3981&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;seq&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;919&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1021&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ack&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;811&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;win&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;115&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;options&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;nop&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;nop&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;TS&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;27675434&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ecr&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;665838&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;],&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;length&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;102&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 
 &lt;blockquote&gt;
   &lt;p&gt;第1行正常数据发送，第2行返回ack，第三行发送数据，后面5行数据重发。&lt;/p&gt;
