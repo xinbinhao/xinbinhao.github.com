@@ -30,7 +30,7 @@ tags:
 
 **tcpdump**
 
-```javascript
+{% highlight java %}
 
 17:31:16.236188 IP (tos 0x0, ttl 63, id 38272, offset 0, flags [DF], proto TCP (6), length 142)
 x.x.36.14.16019 > x.x.156.57.42215: Flags [P.], cksum 0xcf84 (correct), seq 721:811, ack 919, win 114, options [nop,nop,TS val 665838 ecr 27489167], length 90
@@ -56,7 +56,7 @@ x.x.156.57.42215 > x.x.36.14.16019: Flags [P.], cksum 0xd547 (incorrect -> 0x4f9
 17:34:22.500519 IP (tos 0x0, ttl 64, id 41108, offset 0, flags [DF], proto TCP (6), length 154)
 x.x.156.57.42215 > x.x.36.14.16019: Flags [P.], cksum 0xd547 (incorrect -> 0x3981), seq 919:1021, ack 811, win 115, options [nop,nop,TS val 27675434 ecr 665838], length 102
 
-```
+{% endhighlight %}
 
 > 第1行正常数据发送，第2行返回ack，第三行发送数据，后面5行数据重发。
 

@@ -31,12 +31,12 @@ tags:
 
 缺点：需要提前分配好数据区域，当达到一定的并发后还会遇到性能问题。
 
+
 **二、语言自带方式**
 
 很多语言都自带了方法。比如java 中UUID方式 UUID.randomUUID().toString()
 
-```javascript
-
+{% highlight java %}
 /**
 * get Id by UUID
 * @return
@@ -45,55 +45,11 @@ public static String createId(){
      return UUID.randomUUID().toString();
 }
 
-```
+{% endhighlight %}
 
 **三、本机ip+当时时间+累加因子 方式**
 
-```javascript
-
-public class IdGenerator {
-
-    private static AtomicInteger count = new AtomicInteger(1024);
-
-    /**
-    * get Id by localIP + timeStamp + count
-    * @return
-    */
-    public static String createIdByLocalIp() {
-        return getId(InetAddressUtil.getLocalIpHex(), System.currentTimeMillis(), getNextId());
-    }
-
-    /**
-    * get Id by IP + timeStamp + count
-    * @param ip input IP
-    * @return
-    */
-    public static String createIdByIp(String ip) {
-        if ((ip != null) && (!(ip.isEmpty())) && (InetAddressUtil.validate(ip))){
-            return getId(InetAddressUtil.IpToHex(ip), System.currentTimeMillis(),getNextId());
-        }
-        return createIdByLocalIp();
-    } 
-
-    private static String getId(String ip, long timestamp, int nextId) {
-        StringBuilder appender = new StringBuilder(25);
-        appender.append(ip).append(timestamp).append(nextId);
-        return appender.toString();
-    }
-
-    private static int getNextId() {
-        while (true) {
-            int current = count.get();
-            int next = (current > 8192) ? 1024 : current + 1;
-            if (count.compareAndSet(current, next))
-                return next;
-        }
-    }
-}
-
-```
-
-
+<script src="https://gist.github.com/568ea62a9618443dea97.js"></script>
 
 详细代码请查看github项目。
 
@@ -112,113 +68,7 @@ long类型：64位ID (42(毫秒)+5(机器ID)+5(业务编码)+12(重复累加因�
 
 下面代码类似twitter id 生成算法。
 
-```javascripet
-
-/**
- * 唯一ID 生成器
- * 64位ID (42(毫秒)+5(机器ID)+5(业务编码)+12(重复累加))
- */
-public class IdCreater {
-	private final static long idepoch = 1288834974657L;
-	// 机器标识位数
-	private final static long workerIdBits = 5L;
-	// 业务标识位数
-	private final static long datacenterIdBits = 5L;
-	// 机器ID最大值
-	private final static long maxWorkerId = -1L ^ (-1L << workerIdBits);
-	// 业务ID最大值
-	private final static long maxDatacenterId = -1L ^ (-1L << datacenterIdBits);
-	// 毫秒内自增位
-	private final static long sequenceBits = 12L;
-	// 机器ID偏左移12位
-	private final static long workerIdShift = sequenceBits;
-	// 业务ID左移17位
-	private final static long datacenterIdShift = sequenceBits + workerIdBits;
-	// 时间毫秒左移22位
-	private final static long timestampLeftShift = sequenceBits + workerIdBits + datacenterIdBits;
-
-	private final static long sequenceMask = -1L ^ (-1L << sequenceBits);
-
-	private static long lastTimestamp = -1L;
-
-	private long sequence = 0L;
-	private final long workerId;
-	private final long datacenterId;
-
-	public IdCreater(long workerId, long datacenterId) {
-		if (workerId > maxWorkerId || workerId < 0) {
-			throw new IllegalArgumentException("worker Id can't be greater than %d or less than 0");
-		}
-		if (datacenterId > maxDatacenterId || datacenterId < 0) {
-			throw new IllegalArgumentException("datacenter Id can't be greater than %d or less than 0");
-		}
-		this.workerId = workerId;
-		this.datacenterId = datacenterId;
-	}
-	
-	public IdCreater(long workerId) {
-		if (workerId > maxWorkerId || workerId < 0) {
-			throw new IllegalArgumentException("worker Id can't be greater than %d or less than 0");
-		}
-		this.workerId = workerId;
-		this.datacenterId = 0;
-	}
-	
-	public long generate(){
-		return this.nextId(false, 0);
-	}
-	
-	public long generate(long busid){
-		return this.nextId(true, busid);
-	}
-	
-	private synchronized long nextId(boolean isPadding, long busid) {
-		long timestamp = timeGen();
-		long paddingnum = datacenterId;
-		if(isPadding){
-			paddingnum = busid;
-		}
-		if (timestamp < lastTimestamp) {
-			try {
-				throw new Exception("Clock moved backwards.  Refusing to generate id for "+ (lastTimestamp - timestamp) + " milliseconds");
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		}
-
-		if (lastTimestamp == timestamp) {
-			sequence = (sequence + 1) & sequenceMask;
-			if (sequence == 0) {
-				timestamp = tailNextMillis(lastTimestamp);
-			}
-		} else {
-			sequence = 0;
-		}
-		lastTimestamp = timestamp;
-		long nextId = ((timestamp - idepoch) << timestampLeftShift)
-				| (paddingnum << datacenterIdShift)
-				| (workerId << workerIdShift) | sequence;
-
-		return nextId;
-	}
-
-	private long tailNextMillis(final long lastTimestamp) {
-		long timestamp = this.timeGen();
-		while (timestamp <= lastTimestamp) {
-			timestamp = this.timeGen();
-		}
-		return timestamp;
-	}
-
-	private long timeGen() {
-		return System.currentTimeMillis();
-	}
-}
-
-
-```
-
-
+<script src="https://gist.github.com/3d6015ea14f96d13d7ea.js"></script>
 
 
 > **总结：**
