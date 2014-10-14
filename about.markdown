@@ -7,9 +7,9 @@ me
 
 > 58.com | spat | Architect
 
-> [github](https://github.com/polimo)
+> [github](https://github.com/xinbinhao)
 
-> [blog](https://polimo.github.io)
+> [blog](https://xinbinhao.github.io)
 
 mail 
 
@@ -17,6 +17,6 @@ mail
 
 weibo 
 
-> [@郝郝新斌](http://weibo.com/haoxinbin)
+> [@xinbinhao](http://weibo.com/haoxinbin)
 
 
