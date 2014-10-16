@@ -1,8 +1,8 @@
 ---
-title: "TCP系列一:宕机"
+title: "TCP系列一:宕机(掉电,掉线)"
 layout: post-my
-guid: urn:uuid:866af2a0-3fc7-4ced-839d-1839115b7176
-description: "tcp 宕机"
+guid: urn:uuid:a2sijn2f2ewcc1vdgnpnrhwuxvrmaf2b
+description: "tcp连接时一端宕机(掉电,掉线)原理分析"
 tags:
   - tcp
   - poweroff

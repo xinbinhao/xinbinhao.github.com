@@ -1,10 +1,10 @@
 ---
 title: 全局唯一ID生成算法
 layout: post-my
-guid: urn:uuid:866af2a0-3fc7-4ced-839d-1839115b7176
+guid: urn:uuid:g5vfkudm1kpd95jydkscapfukdk3p1ix
+description: "分布式系统全局唯一ID生成算法"
 tags:
-  - 唯一id
-  - 全局
+  - 全局唯一id
 ---
 
 在分布式系统中经常遇到需要获取唯一ID的情况，在保证唯一的前提下一定要高性能，并且要相对占用很少的空间。
