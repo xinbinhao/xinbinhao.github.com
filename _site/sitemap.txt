@@ -10,5 +10,7 @@ http://xinbinhao.github.io/rss.xml
 http://xinbinhao.github.io/sitemap.txt
 http://xinbinhao.github.io/tags.html
 
+http://xinbinhao.github.io/2014/09/23/tcp-shutdown
 http://xinbinhao.github.io/2014/09/22/idcreater
 http://xinbinhao.github.io/2014/08/25/tcp-poweroff
+http://xinbinhao.github.io/2014/07/25/web-404

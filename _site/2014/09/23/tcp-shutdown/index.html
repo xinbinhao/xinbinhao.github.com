@@ -4,9 +4,9 @@
   <head>
     <meta http-equiv="content-type" content="text/html; charset=utf-8" />
     
-    <title>xinbinhao</title>
+    <title>TCP系列二:主动关闭连接</title>
     
-    
+    <meta name="description" content="tcp连接时一端主动断开连接原理解析">
     <meta name="author" content="xinbinhao"/>
     <link rel="shortcut icon" href="/favicon.ico">
     <link href="/atom.xml" rel="alternate" title="" type="application/atom+xml" />
@@ -49,34 +49,28 @@
           </nav>
         </header>
         <div id="content">
-        
-<div>
-  <ul class="listing">
+        <article>
+  <section class="title">
+    <h2>TCP系列二:主动关闭连接 </h2>
+  </section>
+  <section class="meta">
+  <span class="time">
+    <time datetime="2014-09-23">2014-09-23</time>
+  </span>
   
-  <article class="content">
-    <section class="title">
-      <h2><a href="/2014/09/23/tcp-shutdown">TCP系列二:主动关闭连接</a></h2>
-    </section>
-    <section class="meta">
-    <span class="time">
-      <time datetime="2014-09-23">2014-09-23</time>
-    </span>
+  <span class="tags">
     
-    <span class="tags">
-      
-      <a href="/tags.html#tcp shutdown" title="tcp shutdown">#tcp shutdown</a>
-      
-    </span>
+    <a href="/tags.html#tcp shutdown" title="tcp shutdown">#tcp shutdown</a>
     
-    <!-- BEGIN this would not work on any other domain -->
-    <!-- LikeBtn.com BEGIN -->
-    <span class="likebtn-wrapper" data-theme="youtube"></span>
-    <script type="text/javascript" src="//w.likebtn.com/js/w/widget.js" async="async"></script>
-    <!-- LikeBtn.com END -->
-    <!-- END this would not work on any other domain -->
-    </section>
-    <section class="post">
-    <p>在编写网络通信模块时，经常会越到主动断开连接和被动断开连接的情况，针对主动断开连接时，要执行4次握手过程。而非正常断开连接有多种，比如说 连接的一端执行kill -9时，另一端需要针对 -1 状态码做处理，然后调用close主动断开连接。还有一种情况是链接的一端宕机(拔网线、掉电)，这种情况请参考  <a href="http://polimo.github.io/2014/08/25/tcp-poweroff.html “TCP系列一:宕机”">TCP系列一:宕机</a></p>
+  </span>
+  <!-- LikeBtn.com BEGIN -->
+  <span class="likebtn-wrapper" data-theme="youtube"></span>
+  <script type="text/javascript" src="//w.likebtn.com/js/w/widget.js" async="async"></script>
+  <!-- LikeBtn.com END -->
+  
+  </section>
+  <section class="post">
+  <p>在编写网络通信模块时，经常会越到主动断开连接和被动断开连接的情况，针对主动断开连接时，要执行4次握手过程。而非正常断开连接有多种，比如说 连接的一端执行kill -9时，另一端需要针对 -1 状态码做处理，然后调用close主动断开连接。还有一种情况是链接的一端宕机(拔网线、掉电)，这种情况请参考  <a href="http://polimo.github.io/2014/08/25/tcp-poweroff.html “TCP系列一:宕机”">TCP系列一:宕机</a></p>
 
 <p>今天主要说的是主动关闭连接情况。关闭4次握手过程如下图：</p>
 
@@ -124,41 +118,48 @@
 <p>在我们程序中可以在调用close时把缓存区的数据手动拉取处理完，这样就可以发送fin包了。</p>
 
 
-    </section>
-    </article>
+  </section>
   
-  </ul>
-  <div class="divider"></div>
-  <ul class="listing main-listing">
-  <li class="listing-seperator">Happend earlier this year
-  
-  
+  <div class="divider">
+    <span>
     
+    <a href="/2014/09/22/idcreater" title="全局唯一ID生成算法"><i class="fa fa-chevron-left"></i></a>
     
-    <li class="listing-item">
-      <time datetime="2014-09-22">2014-09-22</time>
-      <a href="/2014/09/22/idcreater" title="全局唯一ID生成算法">全局唯一ID生成算法</a>
-    </li>
-  
-    
-    
-    <li class="listing-item">
-      <time datetime="2014-08-25">2014-08-25</time>
-      <a href="/2014/08/25/tcp-poweroff" title="TCP系列一:宕机(掉电,掉线)">TCP系列一:宕机(掉电,掉线)</a>
-    </li>
-  
-    
-    
-    <li class="listing-item">
-      <time datetime="2014-07-25">2014-07-25</time>
-      <a href="/2014/07/25/web-404" title="web高并发访问404问题">web高并发访问404问题</a>
-    </li>
-  
-    <li class="listing-seperator"><a href="/archive.html"> Long ago</a></li>
-  
+    </span>
+    <!-- BEGIN comment icon
+    <span><a href="javascript:leave_comment();" id="leave_comment_link"><i class="fa fa-comment-o"></i></a></span>
+    <span><a href="javascript:collapse_comment();" id="collapse_comment_link" style="display:none;"><i class="fa fa-chevron-up"></i></a></span>
+      END comment icon -->
 
+    <span>
+    
+    <i class="fa fa-circle"></i>
+    
+    </span>
+  </div>
+  
+  <!-- comment start-->
+  <section class="comment">
+  <div id="disqus_thread"></div>
+  <script type="text/javascript">
+      var disqus_developer = 1;
+      var disqus_shortname = 'xinbinhao'; // required: replace example with your forum shortname
+      
+      /* * * DON'T EDIT BELOW THIS LINE * * */
+      (function() {
+          var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+          dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
+          (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+      })();
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  <a href="http://disqus.com" class="dsq-brlink">blog comments powered by <span class="logo-disqus">Disqus</span></a>
+  </section>
+  
+  <!-- comment end-->
 
-</li></ul></div>
+  
+</article>
 
         </div>
         <footer>

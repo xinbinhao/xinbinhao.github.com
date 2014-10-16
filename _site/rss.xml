@@ -5,10 +5,65 @@
         <description>xinbinhao - xinbinhao</description>
         <link>http://xinbinhao.github.io</link>
         <link>http://xinbinhao.github.io</link>
-        <lastBuildDate>2014-10-14T14:32:31+08:00</lastBuildDate>
-        <pubDate>2014-10-14T14:32:31+08:00</pubDate>
+        <lastBuildDate>2014-10-16T18:36:31+08:00</lastBuildDate>
+        <pubDate>2014-10-16T18:36:31+08:00</pubDate>
         <ttl>1800</ttl>
 
+
+        <item>
+                <title>TCP系列二:主动关闭连接</title>
+                <description>&lt;p&gt;在编写网络通信模块时，经常会越到主动断开连接和被动断开连接的情况，针对主动断开连接时，要执行4次握手过程。而非正常断开连接有多种，比如说 连接的一端执行kill -9时，另一端需要针对 -1 状态码做处理，然后调用close主动断开连接。还有一种情况是链接的一端宕机(拔网线、掉电)，这种情况请参考  &lt;a href=&quot;http://polimo.github.io/2014/08/25/tcp-poweroff.html “TCP系列一:宕机”&quot;&gt;TCP系列一:宕机&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;今天主要说的是主动关闭连接情况。关闭4次握手过程如下图：&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/media/files/2014/09/23/tcp-shutdown.jpg&quot; alt=&quot;tcp shutdown&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;假如连接的两端分别为客户端(C)和服务端(S)。&lt;/p&gt;
+
+&lt;p&gt;一、C/S 执行close 
+客户端(C)或者服务端(S)一端执行关闭时，另一端会捕获到 -1 状态码，当获取到 -1 状态码时应该主动关闭，否则当前连接为坏连接。&lt;/p&gt;
+
+&lt;p&gt;看到这点的时候很多人认为很简单，但在工作中发现有业务线没有针对-1做处理，很容易引发别的问题。&lt;/p&gt;
+
+&lt;p&gt;二、执行close 底层发生了什么&lt;/p&gt;
+
+&lt;p&gt;按照上图中主动关闭状态图看，如果一端主动执行close时应该发送 fin 包，但真的是这样吗？&lt;/p&gt;
+
+&lt;p&gt;在做网络框架开发时发现一条tcp链接在close时，通过抓包看close在系统调用的时候，发送端发出的是rst报文, 而不是正常的fin而另一端会收到econnrest,而不是正常的fin包。如下：&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;17:26:09.521258 IP localhost.13600 &amp;gt; x.x.58.86.http: R 19:19(0) ack 523 win 9509&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;可以清楚的看到 R 19:19(0) ack 523 win 9509,发的是rst包,为什么呢？&lt;/p&gt;
+
+&lt;p&gt;看看代码实现了什么：&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot; data-lang=&quot;java&quot;&gt;&lt;span class=&quot;n&quot;&gt;net&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ipv4&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tcp&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;c&lt;/span&gt;
+
+&lt;span class=&quot;cm&quot;&gt;/* As outlined in RFC 2525, section 2.17, we send a RST here because&lt;/span&gt;
+&lt;span class=&quot;cm&quot;&gt;      * data was lost. To witness the awful effects of the old behavior of&lt;/span&gt;
+&lt;span class=&quot;cm&quot;&gt;      * always doing a FIN, run an older 2.1.x kernel or 2.0.x, start a bulk&lt;/span&gt;
+&lt;span class=&quot;cm&quot;&gt;      * GET in an FTP client, suspend the process, wait for the client to&lt;/span&gt;
+&lt;span class=&quot;cm&quot;&gt;      * advertise a zero window, then kill -9 the FTP client, wheee...&lt;/span&gt;
+&lt;span class=&quot;cm&quot;&gt;      * Note: timeout is always zero in such a case.&lt;/span&gt;
+&lt;span class=&quot;cm&quot;&gt;      */&lt;/span&gt;
+     &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;data_was_unread&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+          &lt;span class=&quot;cm&quot;&gt;/* Unread data was tossed, zap the connection. */&lt;/span&gt;
+          &lt;span class=&quot;n&quot;&gt;NET_INC_STATS_USER&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sock_net&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sk&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;LINUX_MIB_TCPABORTONCLOSE&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+          &lt;span class=&quot;n&quot;&gt;tcp_set_state&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sk&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;TCP_CLOSE&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+          &lt;span class=&quot;n&quot;&gt;tcp_send_active_reset&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sk&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sk&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sk_allocation&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+     &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;从代码可以看出，当接收缓冲区还有数据，协议栈就会发rst代替fin，所以上面为什么会发rst而不是fin了。&lt;/p&gt;
+
+&lt;p&gt;在我们程序中可以在调用close时把缓存区的数据手动拉取处理完，这样就可以发送fin包了。&lt;/p&gt;
+
+</description>
+                <link>http://xinbinhao.github.io/2014/09/23/tcp-shutdown</link>
+                <guid>http://xinbinhao.github.io/2014/09/23/tcp-shutdown</guid>
+                <pubDate>2014-09-23T00:00:00+08:00</pubDate>
+        </item>
 
         <item>
                 <title>全局唯一ID生成算法</title>
@@ -89,7 +144,7 @@
         </item>
 
         <item>
-                <title>TCP系列一:宕机</title>
+                <title>TCP系列一:宕机(掉电,掉线)</title>
                 <description>&lt;p&gt;&lt;strong&gt;场景&lt;/strong&gt;：
 客户端与服务端通过tcp长连接的方式进行数据交互，当服务端机器突然宕机(掉电、拔网线等)客户端会发生什么。&lt;/p&gt;
 
@@ -175,6 +230,48 @@ more /proc/sys/net/ipv4/tcp_retries2(默认15) &lt;/p&gt;
                 <link>http://xinbinhao.github.io/2014/08/25/tcp-poweroff</link>
                 <guid>http://xinbinhao.github.io/2014/08/25/tcp-poweroff</guid>
                 <pubDate>2014-08-25T00:00:00+08:00</pubDate>
+        </item>
+
+        <item>
+                <title>web高并发访问404问题</title>
+                <description>&lt;p&gt;&lt;strong&gt;场景&lt;/strong&gt;：
+某一业务线是web项目，后端通过rpc框架调别的服务，由于调的某一服务执行较慢，导致web端业务有大量404。&lt;/p&gt;
+
+&lt;p&gt;问题分析：&lt;/p&gt;
+
+&lt;p&gt;为什么会出现大量404？
+一般出现404的原因是因为web服务无法及时响应访问请求导致的。那为什么会出现无法及时响应请求的情况呢？引起这个的原因可能有多方面常见的有
+1、请求连接超过web容量
+2、web业务异常(jvm溢出，业务异常等)
+3、web业务限制(有些业务线为了防止服务压力过大宕机，会做一些保护机制，比如说：请求大于一定数量时，新的请求直接抛弃等)&lt;/p&gt;
+
+&lt;p&gt;上面第3点跟业务确定后可以排除。&lt;/p&gt;
+
+&lt;p&gt;业务方提供的日志中有大量的调用服务超时。并且并发比较大。&lt;/p&gt;
+
+&lt;p&gt;通过
+netstat/ss -na|grep web服务监听端口 |grep ESTAS
+查看，有大量的连接与服务端连接。因此可以判断是业务线访问量较大，超过了web容量，导致了大量的404。&lt;/p&gt;
+
+&lt;p&gt;为什么调别的服务超时会引发该类问题呢？
+通过日志排查发现出现问题当天的访问量超过以往访问量的n倍，由于后端调用的一个服务执行较慢，导致web层在一定的时间内堆积了大量的请求而无法及时访问，又由于访问量暴增，直接导致超出web容量，导致404。后面跟业务线确定是因为业务被攻击导致的。&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;如何防止该类问题发生呢？个人认为有几个点需要考虑：
+1、web业务端要做容量规划
+确定web抗压能力是多少，在达到瓶颈前做自我保护机制，可以抛弃部分请求，让主要的请求不受影响。抗压能力在上线前要做充分测试(tcpcopy)，或者用预估的方式
+2、防刷机制
+web要有防攻击机制，可以根据ip一段时间访问次数做限制,当然防刷又是一门学问了，后期专门写一篇文章说明吧。
+3、后端业务机制
+由于当前案列用了rpc客户端去调服务端，可以缩短远程超时时间，比如说原来请求超时时间为5s，可以设置为3s，尽早超时可以放在后端任务堆积。当然这个超时时间要做权衡，不能因为防止堆积而引起大量的超时。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;hr /&gt;
+
+</description>
+                <link>http://xinbinhao.github.io/2014/07/25/web-404</link>
+                <guid>http://xinbinhao.github.io/2014/07/25/web-404</guid>
+                <pubDate>2014-07-25T00:00:00+08:00</pubDate>
         </item>
 
 
